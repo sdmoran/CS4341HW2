@@ -27,6 +27,21 @@ class AlphaBetaAgent(agent.Agent):
         """Search for the best move (choice of column for the token)"""
         # Your code here
 
+        (boards, cols) = self.get_successors(brd)
+
+        return cols[max(boards)]
+
+    def calculateScore(self, brd):
+        """Heuristic:
+            - If the game can be won, do so immediately.
+            - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
+        for row in brd:
+            for col in brd[row]:
+                if brd.isAnyLineAt(row, col):
+                    return 10000
+
+
+
     # Get the successors of the given board.
     #
     # PARAM [board.Board] brd: the board state
