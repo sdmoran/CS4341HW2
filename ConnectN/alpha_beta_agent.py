@@ -46,6 +46,26 @@ class AlphaBetaAgent(agent.Agent):
 
         return 0
 
+    # Return the a list of the n-th level successors of the given board.
+    # PARAM brd: a board to recursively get succesors for
+    # PARAM n: the level to go til
+    # RETURN list of (board.Board)
+    def getRecursiveSuccessors(self, brd, n):
+        children = []
+        #print("LEVEL: " + str(n))
+        if n <= 1:
+            #print(self.get_successors(brd))
+            return(self.get_successors(brd))
+        else:
+            for b in self.get_successors(brd):
+                for c in self.getRecursiveSuccessors(b[0], n - 1):
+                    children.append(c)
+        return children
+                #print(b[0].board)
+                #print("\n")
+
+
+
 
 
 
