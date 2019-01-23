@@ -27,18 +27,25 @@ class AlphaBetaAgent(agent.Agent):
         """Search for the best move (choice of column for the token)"""
         # Your code here
 
-        (boards, cols) = self.get_successors(brd)
+        # (boards, cols) = self.get_successors(brd)
 
-        return cols[max(boards)]
+        # return cols[max(boards)]
+        return 2
 
     def calculateScore(self, brd):
         """Heuristic:
             - If the game can be won, do so immediately.
             - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
-        for row in brd:
-            for col in brd[row]:
-                if brd.isAnyLineAt(row, col):
-                    return 10000
+        for col in range(0, brd.w):
+            for row in range(0, brd.h):
+                if brd.board[row][col] != 0:
+                    if brd.is_any_line_at(col, row):
+                        return 10000
+
+        # Next, need to check for n-1 in a row.
+
+        return 0
+
 
 
 
