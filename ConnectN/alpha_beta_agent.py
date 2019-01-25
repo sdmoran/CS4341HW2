@@ -25,12 +25,21 @@ class AlphaBetaAgent(agent.Agent):
     # NOTE: make sure the column is legal, or you'll lose the game.
     def go(self, brd):
         """Search for the best move (choice of column for the token)"""
-        # Your code here
+        # Successfully determines column if a player is about to win!! YAY!
 
-        # (boards, cols) = self.get_successors(brd)
+        candidates = self.get_successors(brd)
+        max = 0
+        move = 0
+        for c in candidates:
+            score = self.calculateScore(c[0])
+            if score > max:
+                max = score
+                move = c[1]
+        return move
+
+
 
         # return cols[max(boards)]
-        return 2
 
     def calculateScore(self, brd):
         """Heuristic:
@@ -46,8 +55,8 @@ class AlphaBetaAgent(agent.Agent):
 
         return 0
 
-    # Return the a list of the n-th level successors of the given board.
-    # PARAM brd: a board to recursively get succesors for
+    # Return the list of the n-th level successors of the given board.
+    # PARAM brd: a board to recursively get successors for
     # PARAM n: the level to go til
     # RETURN list of (board.Board)
     def getRecursiveSuccessors(self, brd, n):
@@ -63,10 +72,6 @@ class AlphaBetaAgent(agent.Agent):
         return children
                 #print(b[0].board)
                 #print("\n")
-
-
-
-
 
 
     # Get the successors of the given board.
