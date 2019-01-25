@@ -1,4 +1,5 @@
 import board
+import run
 import alpha_beta_agent as aba
 
 brd = [

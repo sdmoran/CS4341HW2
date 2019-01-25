@@ -1,5 +1,6 @@
 import math
 import agent
+import random
 
 ###########################
 # Alpha-Beta Search Agent #
@@ -28,26 +29,7 @@ class AlphaBetaAgent(agent.Agent):
 
         """Search for the best move (choice of column for the token)"""
         # Selects best move for agent to make based on calculateScore() function.
-
-        gen1 = self.get_successors(brd)
-
-        candidates = []
-
-        for c in gen1:
-            localmax = 0
-            boards = self.getRecursiveSuccessors(c[0], levels)
-            for b in boards:
-                score = self.calculateScore(b[0])
-                if score > localmax:
-                    localmax = score
-            candidates.append((score, c))
-
-        max = 0
-        for c in candidates:
-            if c[0] > max:
-                max = c[0]
-                move = c[1][1]
-        return move
+        return self.get_best_col(brd, levels)
 
 
 
@@ -57,7 +39,7 @@ class AlphaBetaAgent(agent.Agent):
         """Heuristic:
             - If the game can be won, do so immediately.
             - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
-        val = 0
+        val = 0 # this should depend on whether we are looking for max or min
         for col in range(0, brd.w):
             for row in range(0, brd.h):
                 if brd.board[row][col] != 0:
@@ -65,7 +47,10 @@ class AlphaBetaAgent(agent.Agent):
                         return 100000
                     if self.is_any_short_line_at(brd, col, row): # check for n-1 in a row
                         val += 1000
-        return val
+        if brd.player == 1:
+            return val
+        else:
+            return val * -1
 
     # Return the list of the n-th level successors of the given board.
     # PARAM brd: a Board to recursively get successors for
@@ -88,10 +73,18 @@ class AlphaBetaAgent(agent.Agent):
         board_tuples = self.get_successors(brd)
         maxcol = 0
         maxval = 0
+
         for t in board_tuples:
-            if self.alphaBeta(t[0], n, float('-inf'), float('inf'), 1) > maxval:
+            val = self.alphaBeta(t[0], n, float('-inf'), float('inf'), 1)
+            if  val > maxval:
+                maxval = val
                 maxcol = t[1]
+        print("Max value: " + str(maxval))
+        print("Max col: " + str(maxcol))
+        if maxval == 0:
+            return random.randint(0, brd.w - 1)
         return maxcol
+
 
 
     def alphaBeta(self, brd, n, alpha, beta, player):
