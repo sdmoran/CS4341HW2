@@ -25,7 +25,7 @@ class AlphaBetaAgent(agent.Agent):
     # NOTE: make sure the column is legal, or you'll lose the game.
     def go(self, brd):
         """Search for the best move (choice of column for the token)"""
-        # Successfully determines column if a player is about to win!! YAY!
+        # Selects best move for agent to make based on calculateScore() function.
 
         candidates = self.get_successors(brd)
         max = 0
