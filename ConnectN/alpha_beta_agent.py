@@ -25,49 +25,32 @@ class AlphaBetaAgent(agent.Agent):
     #
     # NOTE: make sure the column is legal, or you'll lose the game.
     def go(self, brd):
-        levels = 4
 
         """Search for the best move (choice of column for the token)"""
         # Selects best move for agent to make based on calculateScore() function.
-        return self.get_best_col(brd, levels)
-
-
-
-        # return cols[max(boards)]
+        #return self.alphaBeta(brd, self.max_depth, float('-inf'), float('inf'), brd.player, -1, -1, -1)
+        return self.decision(brd)[1]
 
     def calculateScore(self, brd):
         """Heuristic:
             - If the game can be won, do so immediately.
             - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
-        val = 0 # this should depend on whether we are looking for max or min
+
+        if brd.get_outcome() == 1:
+            return -1000000
+        elif brd .get_outcome() == 2:
+            return 1000000
+
+        val = 0
         for col in range(0, brd.w):
             for row in range(0, brd.h):
                 if brd.board[row][col] != 0:
-                    if brd.is_any_line_at(col, row): # check for win
-                        return 100000
-                    if self.is_any_short_line_at(brd, col, row): # check for n-1 in a row
-                        val += 1000
-        if brd.player == 1:
-            return val
-        else:
-            return val * -1
-
-    # Return the list of the n-th level successors of the given board.
-    # PARAM brd: a Board to recursively get successors for
-    # PARAM n: the level to go til
-    # RETURN tuple of [list of Board.board]
-    def getRecursiveSuccessors(self, brd, n):
-        children = []
-        #print("LEVEL: " + str(n))
-        if n <= 1:
-            #print(self.get_successors(brd))
-            return(self.get_successors(brd))
-        else:
-            for b in self.get_successors(brd):
-                for c in self.getRecursiveSuccessors(b[0], n - 1):
-                    children.append(c)
-        return children
-
+                    if self.is_any_short_line_at(brd, col, row):  # check for n-1 in a row WITH BLANK SPACE AT END
+                        if brd.player == 2:
+                            val += 1000
+                        else:
+                            val -= 2000
+        return val
 
     def get_best_col(self, brd, n):
         board_tuples = self.get_successors(brd)
@@ -75,7 +58,7 @@ class AlphaBetaAgent(agent.Agent):
         maxval = 0
 
         for t in board_tuples:
-            val = self.alphaBeta(t[0], n, float('-inf'), float('inf'), 1)
+            val = self.alphaBeta(t[0], n, float('-inf'), float('inf'), 1, -1, -1, -1)
             if  val > maxval:
                 maxval = val
                 maxcol = t[1]
@@ -85,37 +68,43 @@ class AlphaBetaAgent(agent.Agent):
             return random.randint(0, brd.w - 1)
         return maxcol
 
-
-
-    def alphaBeta(self, brd, n, alpha, beta, player):
-        # todo find more elegant solution fo checking if we won
+    def minimize(self, brd, n, alpha, beta):
         currentScore = self.calculateScore(brd)
-        if n == 0 or currentScore >= 10000:
-            return currentScore
-        # We don't want to return the actual value, we want to return
-        # the column number at the top level that results in highest value
-        # So if it's the top level....
-        # - We get successors of initial board state
-        # - Then run alphaBeta on THOSE
-        # - Get max
-        # - Return index of max
-        # - Probably a job for another method!
-        if player == 1:
-            maxval = float('-inf')
-            for b in self.get_successors(brd):
-                maxval = max(maxval, self.alphaBeta(b[0], n - 1, alpha, beta, 2))
-                alpha = max(alpha, maxval)
-                if alpha > beta:
-                    break
-            return maxval
-        else:
-            minval = float('inf')
-            for b in self.get_successors(brd):
-                minval = min(minval, self.alphaBeta(b[0], n - 1, alpha, beta, 1))
-                beta = min(beta, minval)
-                if alpha > beta:
-                    break
-            return minval
+        if n == 0 or currentScore >= abs(100000):
+            return (None, currentScore)
+        (minChild, minUtil) = (None, float('inf'))
+        for b in self.get_successors(brd):
+            (x, util) = self.maximize(b[0], n - 1, alpha, beta) #here, x is useless, just holds place of tuple elt
+            if util < minUtil:
+                (minChild, minUtil) = (b, util)
+            if minUtil <= alpha:
+                break
+            if minUtil <= beta:
+                beta = minUtil
+        return (minChild, minUtil)
+
+    def maximize(self, brd, n, alpha, beta):
+        currentScore = self.calculateScore(brd)
+        if n == 0 or currentScore >= abs(100000):
+            return (None, currentScore)
+        (maxChild, maxUtil) = (None, float('-inf'))
+        for b in self.get_successors(brd):
+            (x, util) = self.minimize(b[0], n - 1, alpha, beta)  # here, x is useless, just holds place of tuple elt
+            if util > maxUtil:
+                (maxChild, maxUtil) = (b, util)
+            if maxUtil >= beta:
+                break
+            if maxUtil >= alpha:
+                alpha = maxUtil
+        return (maxChild, maxUtil)
+
+    def decision(self, brd):
+        (child, state) = self.maximize(brd, self.max_depth, float('-inf'), float('inf'))
+        return child
+
+
+
+
 
     # Get the successors of the given board.
     #
@@ -151,6 +140,9 @@ class AlphaBetaAgent(agent.Agent):
         # Get token at (x,y)
         t = brd.board[y][x]
         # Go through elements
+        if brd.board[y + (brd.n - 1) * dy][x + (brd.n - 1) * dx] != 0: # We ONLY care if there is a blank space at the end
+            return False
+
         for i in range(1, brd.n - 1):
             if brd.board[y + i * dy][x + i * dx] != t:
                 return False

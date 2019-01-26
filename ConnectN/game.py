@@ -30,6 +30,7 @@ class Game(object):
     # RETURN [int]: The game outcome.
     #               1 for Player 1, 2 for Player 2, and 0 for no winner
     def go(self):
+
         # Current player
         p = 0
         while self.board.free_cols() and self.board.get_outcome() == 0:
