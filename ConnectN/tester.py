@@ -26,10 +26,11 @@ wbrd = [
 ]
 
 wbrd2 = [
-    [1, 1, 1, 0, 1],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
+    [1, 2, 1, 1, 2, 2],
+    [2, 0, 2, 2, 1, 2],
+    [1, 0, 0, 1, 0, 0],
+    [1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
 ]
 
 whynowin = [
@@ -101,7 +102,13 @@ print(alpha.calculateScore(why))"""
 
 why2.player = 2
 
+win2.player = 2
 
+printBoard(win2)
+
+print(alpha.calculateScore(win2, 1))
+
+print(alpha.decision(win2))
 
 # Not properly states of poor outcome for some reason.
 """win.add_token(alpha.go(win))
@@ -129,10 +136,10 @@ print(alpha.go(win))"""
 
 #print(alpha.decision(win)[0].board)
 
-g = game.Game(5, # width
-              4, # height
+g = game.Game(6, # width
+              5, # height
               4, # tokens in a row to win
-              agent.RandomAgent("random"),        # player 1
-              aba.AlphaBetaAgent("alphabeta", 3)) # player 2
-outcome = g.go
+              aba.AlphaBetaAgent("alphabeta", 3),  # player 1
+              agent.RandomAgent("Human"))  # player 2
+#outcome = g.go()
 

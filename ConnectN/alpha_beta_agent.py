@@ -32,14 +32,25 @@ class AlphaBetaAgent(agent.Agent):
         #return self.alphaBeta(brd, self.max_depth, float('-inf'), float('inf'), brd.player, -1, -1, -1)
         return self.decision(brd)
 
-    def calculateScore(self, brd):
+    def calculateScore(self, brd, player):
         """Heuristic:
             - If the game can be won, do so immediately.
             - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
 
-        if brd.get_outcome() == 2:
+        # check if we are player1 or player2 so we can play to maximize score appropriately
+        if player == 1:
+            p = 1
+            o = 2
+        else:
+            p = 2
+            o = 1
+
+        # todo: implement check for "split" lines, like 1 1 0 1. Will probably improve heuristic
+        # todo: examine game vs. random2 where aba goes first
+
+        if brd.get_outcome() == p:
             return 10000000
-        elif brd.get_outcome() == 1:
+        elif brd.get_outcome() == o:
             return -20000000
 
         val = 0
@@ -69,13 +80,13 @@ class AlphaBetaAgent(agent.Agent):
             return random.randint(0, brd.w - 1)
         return maxcol
 
-    def minimize(self, brd, n, alpha, beta):
-        currentScore = self.calculateScore(brd)
+    def minimize(self, brd, n, alpha, beta, player):
+        currentScore = self.calculateScore(brd, player)
         if n == 0 or currentScore >= abs(100000):
             return (None, currentScore)
         (minChild, minUtil) = (None, float('inf'))
         for b in self.get_successors(brd):
-            (x, util) = self.maximize(b[0], n - 1, alpha, beta)  # here, x is useless, just holds place of tuple elt
+            (x, util) = self.maximize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple elt
             if util < minUtil:
                 (minChild, minUtil) = (b, util)
             if minUtil <= alpha:
@@ -84,13 +95,13 @@ class AlphaBetaAgent(agent.Agent):
                 beta = minUtil
         return (minChild, minUtil)
 
-    def maximize(self, brd, n, alpha, beta):
-        currentScore = self.calculateScore(brd)
+    def maximize(self, brd, n, alpha, beta, player):
+        currentScore = self.calculateScore(brd, player)
         if n == 0 or currentScore >= abs(100000):
             return (None, currentScore)
-        (maxChild, maxUtil) = (None, float('-inf'))
+        (maxChild, maxUtil) = ((0, None), float('-inf'))
         for b in self.get_successors(brd):
-            (x, util) = self.minimize(b[0], n - 1, alpha, beta)  # here, x is useless, just holds place of tuple elt
+            (x, util) = self.minimize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple elt
             if util > maxUtil:
                 (maxChild, maxUtil) = (b, util)
             if maxUtil >= beta:
@@ -107,7 +118,9 @@ class AlphaBetaAgent(agent.Agent):
         bestscore = 0
         # Iterative deepening
         for i in range(1, self.max_depth + 1):
-            (child, state) = self.maximize(brd, i, float('-inf'), float('inf'))
+            (child, state) = self.maximize(brd, i, float('-inf'), float('inf'), brd.player)
+            if state <= -20000000:
+                return child[1]
             if state >= 10000000:
                 return child[1]
             if state > bestscore:
@@ -117,7 +130,7 @@ class AlphaBetaAgent(agent.Agent):
             else:
                 bestmove = child
             elapsed_time = time.time() - start_time
-            if elapsed_time > 7:
+            if elapsed_time > 10:
                 break
         return bestmove[1]
 
@@ -162,9 +175,14 @@ class AlphaBetaAgent(agent.Agent):
         if brd.board[y + (brd.n - 1) * dy][x + (brd.n - 1) * dx] != 0: # We ONLY care if there is a blank space at the end
             return False
 
+        split = False
+
         for i in range(1, brd.n - 1):
             if brd.board[y + i * dy][x + i * dx] != t:
-                return False
+                if split:
+                    return False
+                if not split:
+                    split = True
         return True
 
     # Check if a line of identical tokens exists starting at (x,y) in any direction
