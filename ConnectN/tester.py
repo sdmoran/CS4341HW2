@@ -41,6 +41,16 @@ whynowin = [
     [1, 2, 0, 0, 0, 0, 0]
 ]
 
+whyno2 = [
+    [2, 1, 1, 1, 0, 0, 0],
+    [2, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+]
+
+
 b1 = board.Board(brd, 5, 4, 4)
 
 win = board.Board(wbrd, 5, 4, 4)
@@ -48,6 +58,8 @@ win = board.Board(wbrd, 5, 4, 4)
 win2 = board.Board(wbrd2, 5, 4, 4)
 
 why = board.Board(whynowin, 7, 6, 4)
+
+why2 = board.Board(whyno2, 7, 6, 4)
 
 blank = board.Board(empty, 5, 4, 4)
 
@@ -73,15 +85,24 @@ def printBoard(brd):
         print(agent.calculateScore(c[0]))"""
 
 alpha = aba.AlphaBetaAgent("Jimbo", 3)
-
+"""
 print("Scores for children::")
 for c in alpha.get_successors(why):
     print("Move: " + str(c[1]))
     print("Score: " + str(alpha.calculateScore(c[0])))
-print(alpha.calculateScore(why))
+print(alpha.calculateScore(why))"""
 
-print("Suggested move::")
-print(alpha.go(why))
+# This series of commands is very interesting. If the player is 1, the algorithm correctly detects that column 4 is the
+# best move. However, if the player is 2, the algorithm decides that column 0 is the best. Perhaps because it chooses
+# its own victory over preventing opponent from winning? Needs more work/examination.
+why2.player = 2
+print(alpha.calculateScore(why2))
+printBoard(why2)
+print("Suggested move 2::")
+print(alpha.go(why2))
+why2.add_token(alpha.go(why2))
+printBoard(why2)
+print(alpha.calculateScore(why2))
 
 
 print(alpha.calculateScore(win))

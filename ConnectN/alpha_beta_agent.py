@@ -37,7 +37,7 @@ class AlphaBetaAgent(agent.Agent):
             - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
 
         if brd.get_outcome() == 1:
-            return -1000000
+            return 10000000
         elif brd .get_outcome() == 2:
             return 1000000
 
@@ -74,7 +74,7 @@ class AlphaBetaAgent(agent.Agent):
             return (None, currentScore)
         (minChild, minUtil) = (None, float('inf'))
         for b in self.get_successors(brd):
-            (x, util) = self.maximize(b[0], n - 1, alpha, beta) #here, x is useless, just holds place of tuple elt
+            (x, util) = self.maximize(b[0], n - 1, alpha, beta)  # here, x is useless, just holds place of tuple elt
             if util < minUtil:
                 (minChild, minUtil) = (b, util)
             if minUtil <= alpha:
