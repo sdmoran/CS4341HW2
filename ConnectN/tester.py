@@ -84,7 +84,7 @@ def printBoard(brd):
         print(c[0].board)
         print(agent.calculateScore(c[0]))"""
 
-alpha = aba.AlphaBetaAgent("Jimbo", 3)
+alpha = aba.AlphaBetaAgent("Jimbo", 1)
 """
 print("Scores for children::")
 for c in alpha.get_successors(why):
@@ -95,26 +95,13 @@ print(alpha.calculateScore(why))"""
 # This series of commands is very interesting. If the player is 1, the algorithm correctly detects that column 4 is the
 # best move. However, if the player is 2, the algorithm decides that column 0 is the best. Perhaps because it chooses
 # its own victory over preventing opponent from winning? Needs more work/examination.
+# AAAAAAAAHHHHH I seeeeeee it's because IT DOESN'T SEE PLACING THAT AS BENEFICIAL. Like, 1 1 1 2 is completely useless
+# as far as the algorithm is concerned!!! Not a high score, results in useless state. Need to incentivize.
+# ---- Wait, nevermind. Correctly detecting looks like, just not reading correct column number?? wacky.
+
 why2.player = 2
-print(alpha.calculateScore(why2))
-printBoard(why2)
-print("Suggested move 2::")
-print(alpha.go(why2))
-why2.add_token(alpha.go(why2))
-printBoard(why2)
-print(alpha.calculateScore(why2))
 
 
-print(alpha.calculateScore(win))
-printBoard(win)
-win.add_token(alpha.go(win))
-printBoard(win)
-
-print("WIN2:")
-print(alpha.calculateScore(win2))
-printBoard(win2)
-win2.add_token(alpha.go(win2))
-printBoard(win2)
 
 # Not properly states of poor outcome for some reason.
 """win.add_token(alpha.go(win))
@@ -142,9 +129,10 @@ print(alpha.go(win))"""
 
 #print(alpha.decision(win)[0].board)
 
-#g = game.Game(5, # width
- #             4, # height
-  #            4, # tokens in a row to win
-   #           agent.RandomAgent("random"),        # player 1
-    #          aba.AlphaBetaAgent("alphabeta", 4)) # player 2
+g = game.Game(5, # width
+              4, # height
+              4, # tokens in a row to win
+              agent.RandomAgent("random"),        # player 1
+              aba.AlphaBetaAgent("alphabeta", 3)) # player 2
+outcome = g.go
 

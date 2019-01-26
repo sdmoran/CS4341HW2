@@ -1,6 +1,7 @@
 import math
 import agent
 import random
+import time
 
 ###########################
 # Alpha-Beta Search Agent #
@@ -29,24 +30,24 @@ class AlphaBetaAgent(agent.Agent):
         """Search for the best move (choice of column for the token)"""
         # Selects best move for agent to make based on calculateScore() function.
         #return self.alphaBeta(brd, self.max_depth, float('-inf'), float('inf'), brd.player, -1, -1, -1)
-        return self.decision(brd)[1]
+        return self.decision(brd)
 
     def calculateScore(self, brd):
         """Heuristic:
             - If the game can be won, do so immediately.
             - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
 
-        if brd.get_outcome() == 1:
+        if brd.get_outcome() == 2:
             return 10000000
-        elif brd .get_outcome() == 2:
-            return 1000000
+        elif brd.get_outcome() == 1:
+            return -20000000
 
         val = 0
         for col in range(0, brd.w):
             for row in range(0, brd.h):
                 if brd.board[row][col] != 0:
                     if self.is_any_short_line_at(brd, col, row):  # check for n-1 in a row WITH BLANK SPACE AT END
-                        if brd.player == 2:
+                        if brd.board[row][col] == 2: # fixed this, previously only checked PLAYER, not TOKEN
                             val += 1000
                         else:
                             val -= 2000
@@ -99,8 +100,26 @@ class AlphaBetaAgent(agent.Agent):
         return (maxChild, maxUtil)
 
     def decision(self, brd):
-        (child, state) = self.maximize(brd, self.max_depth, float('-inf'), float('inf'))
-        return child
+        start_time = time.time()
+        global bestmove
+        global bestscore
+        bestmove = 0
+        bestscore = 0
+        # Iterative deepening
+        for i in range(1, self.max_depth + 1):
+            (child, state) = self.maximize(brd, i, float('-inf'), float('inf'))
+            if state >= 10000000:
+                return child[1]
+            if state > bestscore:
+                bestscore = state
+                bestmove = child
+
+            else:
+                bestmove = child
+            elapsed_time = time.time() - start_time
+            if elapsed_time > 7:
+                break
+        return bestmove[1]
 
 
 
