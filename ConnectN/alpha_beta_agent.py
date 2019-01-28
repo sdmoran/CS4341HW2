@@ -52,11 +52,14 @@ class AlphaBetaAgent(agent.Agent):
             p = 2
             o = 1
 
-        # Return immediately if the board is a winning state. THIS BLOCK OF CODE decides priority for winning.
-        # Currently, will always prevent opponent winning before winning itself (errs on the side of caution)
-        if brd.get_outcome() == o:
+        # ==== This appears to be the final piece. AlphaBeta now consistently wins at depth >= 4! ====
+        # Checks if the opponent has won and it is now the AI player's turn, meaning it WAS the opponent's turn
+        # previously, and it was allowed to win.
+        if brd.get_outcome() == o and brd.player == p:
             return -20000000
-        elif brd.get_outcome() == p:
+        # Checks if the player we want to win has won and it is now the opponent's turn, meaning it WAS the AI's turn
+        # in the previous turn, allowing it to win immediately.
+        elif brd.get_outcome() == p and brd.player == o:
             return 10000000
 
 
@@ -145,7 +148,7 @@ class AlphaBetaAgent(agent.Agent):
             else:
                 bestmove = child
             elapsed_time = time.time() - start_time
-            if elapsed_time > 10:
+            if elapsed_time > 10:  # This could be as high as 15, technically, but we use 12 just in case
                 break
         return bestmove[1]
 

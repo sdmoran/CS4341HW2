@@ -4,9 +4,10 @@ import agent
 import alpha_beta_agent as aba
 
 # Set random seed for reproducibility
-seed = random.randint(1, 101)
-print("Random seed: " + str(seed))
-random.seed(seed)
+for i in range (0, 1000):
+    seed = random.randint(1, 100000001)
+    print("Random seed: " + str(seed))
+    random.seed(seed)
 
 #
 # Random vs. Random
