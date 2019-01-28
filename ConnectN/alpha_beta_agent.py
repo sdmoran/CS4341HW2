@@ -52,11 +52,13 @@ class AlphaBetaAgent(agent.Agent):
             p = 2
             o = 1
 
-        # return immediately if the board is a winning state
-        if brd.get_outcome() == p:
-            return 10000000
-        elif brd.get_outcome() == o:
+        # Return immediately if the board is a winning state. THIS BLOCK OF CODE decides priority for winning.
+        # Currently, will always prevent opponent winning before winning itself (errs on the side of caution)
+        if brd.get_outcome() == o:
             return -20000000
+        elif brd.get_outcome() == p:
+            return 10000000
+
 
         val = 0
         for col in range(0, brd.w):
@@ -307,3 +309,5 @@ class AlphaBetaAgent(agent.Agent):
                 if (self.board[y][x] != 0) and self.is_any_short_line_at(x,y):
                     return self.board[y][x]
         return 0
+
+    #THE_AGENT = AlphaBetaAgent("MoranSamuel", 4)
