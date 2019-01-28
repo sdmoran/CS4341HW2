@@ -5,17 +5,37 @@ import game
 import alpha_beta_agent as aba
 
 brd = [
-    [1, 1, 1, 0, 1],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
+    [0, 1, 2, 2, 0, 3],
+    [0, 1, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]
+
+dgl_up = [
+    [0, 1, 2, 1, 0, 0],
+    [0, 2, 1, 1, 0, 0],
+    [0, 0, 2, 1, 0, 0],
+    [0, 0, 0, 2, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]
+
+dgl_down = [
+    [0, 0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
 ]
 
 empty = [
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]
+    [0, 0, 0, 0, 0],
 ]
 
 wbrd = [
@@ -43,16 +63,16 @@ whynowin = [
 ]
 
 whyno2 = [
-    [2, 1, 1, 1, 0, 0, 0],
+    [2, 0, 0, 1, 1, 0, 1],
     [2, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0],
+    [2, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0]
 ]
 
 
-b1 = board.Board(brd, 5, 4, 4)
+b1 = board.Board(brd, 6, 6, 4)
 
 win = board.Board(wbrd, 5, 4, 4)
 
@@ -64,8 +84,12 @@ why2 = board.Board(whyno2, 7, 6, 4)
 
 blank = board.Board(empty, 5, 4, 4)
 
+dup = board.Board(dgl_up, 6, 6, 4)
+ddown = board.Board(dgl_down, 6, 6, 4)
+
 win.player = 2
 win2.player = 2  # Interestingly, WIN2 only detects properly when current player is 1? Wacky.
+
 
 def printBoard(brd):
     for r in brd.board:
@@ -86,6 +110,24 @@ def printBoard(brd):
         print(agent.calculateScore(c[0]))"""
 
 alpha = aba.AlphaBetaAgent("Jimbo", 1)
+
+print("Score 1: ")
+print(alpha.calculateScore(why2, 1))
+
+print("Score 2: ")
+print(alpha.calculateScore(why2, 2))
+
+
+print("Player1 choice: ")
+why2.player = 1
+print(alpha.go(why2))
+
+print("Player2 choice: ")
+why2.player = 2
+print(alpha.go(why2))
+
+
+
 """
 print("Scores for children::")
 for c in alpha.get_successors(why):
@@ -99,38 +141,6 @@ print(alpha.calculateScore(why))"""
 # AAAAAAAAHHHHH I seeeeeee it's because IT DOESN'T SEE PLACING THAT AS BENEFICIAL. Like, 1 1 1 2 is completely useless
 # as far as the algorithm is concerned!!! Not a high score, results in useless state. Need to incentivize.
 # ---- Wait, nevermind. Correctly detecting looks like, just not reading correct column number?? wacky.
-
-why2.player = 2
-
-win2.player = 2
-
-printBoard(win2)
-
-print(alpha.calculateScore(win2, 1))
-
-print(alpha.decision(win2))
-
-# Not properly states of poor outcome for some reason.
-"""win.add_token(alpha.go(win))
-
-print(win.board)
-
-win.add_token(0)
-print(alpha.calculateScore(win))
-
-win.add_token(0)
-print(alpha.calculateScore(win))
-
-print("Player number: " + str(win.player))
-print("Column picked: ")
-print(alpha.go(win))
-print(alpha.go(win))
-print(alpha.go(win))
-win.add_token(alpha.go(win))
-
-print("Player number: " + str(win.player))
-print("Column picked: ")
-print(alpha.go(win))"""
 
 #boards = alpha.get_successors(brd)
 

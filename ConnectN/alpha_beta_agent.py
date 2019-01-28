@@ -32,10 +32,19 @@ class AlphaBetaAgent(agent.Agent):
         #return self.alphaBeta(brd, self.max_depth, float('-inf'), float('inf'), brd.player, -1, -1, -1)
         return self.decision(brd)
 
+    # Calculates score for given board state.
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] player: the player to score the board state for
+    # RETURN [int]: the numerical score of the board state
     def calculateScore(self, brd, player):
         """Heuristic:
-            - If the game can be won, do so immediately.
-            - Otherwise, look for n - 1s in a row, n - 2s in a row, etc, scoring proportionally"""
+            - If the game can be won, return an incredibly large value
+            - Otherwise, look for n - 1s in a row, returning a value corresponding to the number
+                - If the n - 1 line has a blank at both ends, it is weighted far more favorably
+                - If it has only one blank space at one end, it is weighted less
+                - If it has no blank at the end, it is ignored because it cannot result in a win
+            - Preventing opponent from winning is prioritized higher than actually winning"""
 
         # check if we are player1 or player2 so we can play to maximize score appropriately
         if player == 1:
@@ -45,9 +54,7 @@ class AlphaBetaAgent(agent.Agent):
             p = 2
             o = 1
 
-        # todo: implement check for "split" lines, like 1 1 0 1. Will probably improve heuristic
-        # todo: examine game vs. random2 where aba goes first
-
+        # return immediately if the board is a winning state
         if brd.get_outcome() == p:
             return 10000000
         elif brd.get_outcome() == o:
@@ -57,36 +64,25 @@ class AlphaBetaAgent(agent.Agent):
         for col in range(0, brd.w):
             for row in range(0, brd.h):
                 if brd.board[row][col] != 0:
-                    if self.is_any_short_line_at(brd, col, row):  # check for n-1 in a row WITH BLANK SPACE AT END
-                        if brd.board[row][col] == 2: # fixed this, previously only checked PLAYER, not TOKEN
-                            val += 1000
+                    short_line = self.is_any_short_line_at(brd, col, row)
+                    if short_line:  # We don't care if there is no n-1 line
+                        space_before = self.is_any_space_before(brd, col, row)
+                        if space_before and short_line:  # Assigns significantly higher score if space before and after
+                            multiplier = 5
                         else:
-                            val -= 2000
+                            multiplier = 1
+                        if brd.board[row][col] == p:  # Checks appropriate token based on player
+                            val += 1000 * multiplier
+                        else:
+                            val -= 2000 * multiplier
         return val
 
-    def get_best_col(self, brd, n):
-        board_tuples = self.get_successors(brd)
-        maxcol = 0
-        maxval = 0
-
-        for t in board_tuples:
-            val = self.alphaBeta(t[0], n, float('-inf'), float('inf'), 1, -1, -1, -1)
-            if  val > maxval:
-                maxval = val
-                maxcol = t[1]
-        print("Max value: " + str(maxval))
-        print("Max col: " + str(maxcol))
-        if maxval == 0:
-            return random.randint(0, brd.w - 1)
-        return maxcol
-
     def minimize(self, brd, n, alpha, beta, player):
-        currentScore = self.calculateScore(brd, player)
-        if n == 0 or currentScore >= abs(100000):
-            return (None, currentScore)
+        if n == 0:
+            return (None, self.calculateScore(brd, player))
         (minChild, minUtil) = (None, float('inf'))
         for b in self.get_successors(brd):
-            (x, util) = self.maximize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple elt
+            (x, util) = self.maximize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple
             if util < minUtil:
                 (minChild, minUtil) = (b, util)
             if minUtil <= alpha:
@@ -96,12 +92,12 @@ class AlphaBetaAgent(agent.Agent):
         return (minChild, minUtil)
 
     def maximize(self, brd, n, alpha, beta, player):
-        currentScore = self.calculateScore(brd, player)
-        if n == 0 or currentScore >= abs(100000):
-            return (None, currentScore)
+        #  This should ONLY stop if n is terminal
+        if n == 0:
+            return (None, self.calculateScore(brd, player))
         (maxChild, maxUtil) = ((0, None), float('-inf'))
         for b in self.get_successors(brd):
-            (x, util) = self.minimize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple elt
+            (x, util) = self.minimize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple
             if util > maxUtil:
                 (maxChild, maxUtil) = (b, util)
             if maxUtil >= beta:
@@ -126,17 +122,12 @@ class AlphaBetaAgent(agent.Agent):
             if state > bestscore:
                 bestscore = state
                 bestmove = child
-
             else:
                 bestmove = child
             elapsed_time = time.time() - start_time
             if elapsed_time > 10:
                 break
         return bestmove[1]
-
-
-
-
 
     # Get the successors of the given board.
     #
@@ -163,6 +154,7 @@ class AlphaBetaAgent(agent.Agent):
             succ.append((nb,col))
         return succ
 
+    #  todo: assign values to lines? maybe return 1 for 1 space, 2 for 2, 0 for 0
     def is_short_line_at(self, brd, x, y, dx, dy):
         """Return True if a line of identical tokens exists starting at (x,y) in direction (dx,dy)"""
         # Avoid out-of-bounds errors
@@ -171,31 +163,102 @@ class AlphaBetaAgent(agent.Agent):
             return False
         # Get token at (x,y)
         t = brd.board[y][x]
-        # Go through elements
-        if brd.board[y + (brd.n - 1) * dy][x + (brd.n - 1) * dx] != 0: # We ONLY care if there is a blank space at the end
+        if t == 0:
             return False
+        # Go through elements
+
+        if not self.check_space_after:  # We ONLY care if there is a blank space at end
+            return False
+        # todo: check space before line for openness and fix above function%^^^^ maybe write helpers?
+        # if y - dy >= 0 and x - abs(dx): #ch
+        #   if brd.board[y - dy][x - dx] != 0:
+        #       return False
 
         split = False
 
-        for i in range(1, brd.n - 1):
-            if brd.board[y + i * dy][x + i * dx] != t:
-                if split:
+        for i in range(1, brd.n):
+            symbol = brd.board[y + i * dy][x + i * dx]
+            if symbol != t:
+                if symbol == 0:
+                    if split:
+                        return False
+                    if not split:
+                        split = True
+                else:
                     return False
-                if not split:
-                    split = True
         return True
 
-    # Check if a line of identical tokens exists starting at (x,y) in any direction
-    #
-    # PARAM [int] x:  the x coordinate of the starting cell
-    # PARAM [int] y:  the y coordinate of the starting cell
-    # RETURN [Bool]: True if n tokens of the same type have been found, False otherwise
+        # Check if a line of identical tokens exists starting at (x,y) in any direction
+        #
+        # PARAM [int] x:  the x coordinate of the starting cell
+        # PARAM [int] y:  the y coordinate of the starting cell
+        # RETURN [Bool]: True if n tokens of the same type have been found, False otherwise
+
     def is_any_short_line_at(self, brd, x, y):
         """Return True if a line of identical tokens exists starting at (x,y) in any direction"""
         return (self.is_short_line_at(brd, x, y, 1, 0) or  # Horizontal
                 self.is_short_line_at(brd, x, y, 0, 1) or  # Vertical
                 self.is_short_line_at(brd, x, y, 1, 1) or  # Diagonal up
-                self.is_short_line_at(brd, x, y, 1, -1)) # Diagonal down
+                self.is_short_line_at(brd, x, y, 1, -1))  # Diagonal down
+
+    def check_space_before(self, brd, x, y, dx, dy):
+        # Horizontal:
+        if dx == 1 and dy == 0:
+            if x >= 1:
+                return brd.board[y][x - 1] == 0
+            return False
+        # If vertical, we don't have to check; because of how connect4 is played, there will never be a token
+        # with an open space directly+ below it.
+        if dx == 0 and dy == 1:
+            return False
+        # Diagonal up
+        if dx == 1 and dy == 1:
+            if y >= 1 and x >= 1:
+                return brd.board[y - 1][x - 1] == 0
+            return False
+        # Diagonal up
+        if dx == 1 and dy == -1:
+            if y < brd.h - 1 and x >= 1:
+                return brd.board[y + 1][x - 1] == 0
+            return False
+        # in case anything REALLY wacky happens
+        return False
+
+    def check_space_after(self, brd, x, y, dx, dy):
+        # Horizontal:
+        if dx == 1 and dy == 0:
+            if x + brd.n < brd.w:
+                return brd.board[y][x + brd.n] == 0
+            return False
+        if dx == 0 and dy == 1:
+            if y + brd.n < brd.h:
+                return brd.board[y + brd.n][x]
+            return False
+        # Diagonal up
+        if dx == 1 and dy == 1:
+            if y + brd.n < brd.h and x + brd.n < brd.h:
+                return brd.board[y + brd.n][x + brd.n] == 0
+            return False
+        # Diagonal up
+        if dx == 1 and dy == -1:
+            if y - brd.n < brd.h and x + brd.n < brd.h:
+                return brd.board[y - brd.n][x + brd.n] == 0
+            return False
+        # in case anything REALLY wacky happens
+        return False
+
+    # Check if there is a blank space before line of characters in any direction
+    #
+    # PARAM [int] x: the x coordinate of the starting cell
+    # PARAM [int] y: the y coordinate of the starting cell
+    # RETURN [Bool]: True if space exists before given coordinates, False otherwise
+
+    def is_any_space_before(self, brd, x, y):
+        """Return True if a line of identical tokens exists starting at (x,y) in any direction"""
+        return (self.check_space_before(brd, x, y, 1, 0) or  # Horizontal
+                self.check_space_before(brd, x, y, 0, 1) or  # Vertical
+                self.check_space_before(brd, x, y, 1, 1) or  # Diagonal up
+                self.check_space_before(brd, x, y, 1, -1))  # Diagonal down
 
     # Calculate the game outcome.
     #
