@@ -26,10 +26,8 @@ class AlphaBetaAgent(agent.Agent):
     #
     # NOTE: make sure the column is legal, or you'll lose the game.
     def go(self, brd):
-
         """Search for the best move (choice of column for the token)"""
         # Selects best move for agent to make based on calculateScore() function.
-        #return self.alphaBeta(brd, self.max_depth, float('-inf'), float('inf'), brd.player, -1, -1, -1)
         return self.decision(brd)
 
     # Calculates score for given board state.
@@ -77,6 +75,14 @@ class AlphaBetaAgent(agent.Agent):
                             val -= 2000 * multiplier
         return val
 
+    # Calculate minimum score from current board state.
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] n: the depth to search to
+    # PARAM [int] alpha: the alpha value
+    # PARAM [int] beta: the beta value
+    # PARAM [int] player: the current player
+    # RETURN [tuple] (minChild, minUtil): the current child with the minimum heuristic value
     def minimize(self, brd, n, alpha, beta, player):
         if n == 0:
             return (None, self.calculateScore(brd, player))
@@ -91,6 +97,14 @@ class AlphaBetaAgent(agent.Agent):
                 beta = minUtil
         return (minChild, minUtil)
 
+    # Calculate maximum score from current board state.
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] n: the depth to search to
+    # PARAM [int] alpha: the alpha value
+    # PARAM [int] beta: the beta value
+    # PARAM [int] player: the current player
+    # RETURN [tuple] (maxChild, maxUtil): the current child with the maximum heuristic value
     def maximize(self, brd, n, alpha, beta, player):
         #  This should ONLY stop if n is terminal
         if n == 0:
@@ -106,6 +120,10 @@ class AlphaBetaAgent(agent.Agent):
                 alpha = maxUtil
         return (maxChild, maxUtil)
 
+    # Decide which move to make from current board state.
+    #
+    # PARAM [board] brd: the current board state
+    # RETURN [int]: which column to place the next piece in
     def decision(self, brd):
         start_time = time.time()
         global bestmove
@@ -113,7 +131,7 @@ class AlphaBetaAgent(agent.Agent):
         bestmove = 0
         bestscore = 0
         # Iterative deepening
-        for i in range(1, self.max_depth + 1):
+        for i in range(0, self.max_depth + 1):
             (child, state) = self.maximize(brd, i, float('-inf'), float('inf'), brd.player)
             if state <= -20000000:
                 return child[1]
@@ -154,7 +172,14 @@ class AlphaBetaAgent(agent.Agent):
             succ.append((nb,col))
         return succ
 
-    #  todo: assign values to lines? maybe return 1 for 1 space, 2 for 2, 0 for 0
+    # Determines if a line of length n - 1 exists at coordinates (x, y) in direction (dx, dy).
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] x: the x coordinate to start from
+    # PARAM [int] y: the y coordinate to start from
+    # PARAM [int] dx: the x direction to check
+    # PARAM [int] dy: the y direction to check
+    # RETURN [bool]: True if line exists, otherwise False
     def is_short_line_at(self, brd, x, y, dx, dy):
         """Return True if a line of identical tokens exists starting at (x,y) in direction (dx,dy)"""
         # Avoid out-of-bounds errors
@@ -169,11 +194,8 @@ class AlphaBetaAgent(agent.Agent):
 
         if not self.check_space_after:  # We ONLY care if there is a blank space at end
             return False
-        # todo: check space before line for openness and fix above function%^^^^ maybe write helpers?
-        # if y - dy >= 0 and x - abs(dx): #ch
-        #   if brd.board[y - dy][x - dx] != 0:
-        #       return False
 
+        # Accounts for lines that are split in the middle, like 1 1 0 1
         split = False
 
         for i in range(1, brd.n):
@@ -188,12 +210,12 @@ class AlphaBetaAgent(agent.Agent):
                     return False
         return True
 
-        # Check if a line of identical tokens exists starting at (x,y) in any direction
-        #
-        # PARAM [int] x:  the x coordinate of the starting cell
-        # PARAM [int] y:  the y coordinate of the starting cell
-        # RETURN [Bool]: True if n tokens of the same type have been found, False otherwise
-
+    # Check if a line of identical tokens of length n - 1 exists starting at (x,y) in any direction
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] x:  the x coordinate of the starting cell
+    # PARAM [int] y:  the y coordinate of the starting cell
+    # RETURN [Bool]: True if n - 1 tokens of the same type have been found with space at end, False otherwise
     def is_any_short_line_at(self, brd, x, y):
         """Return True if a line of identical tokens exists starting at (x,y) in any direction"""
         return (self.is_short_line_at(brd, x, y, 1, 0) or  # Horizontal
@@ -201,6 +223,14 @@ class AlphaBetaAgent(agent.Agent):
                 self.is_short_line_at(brd, x, y, 1, 1) or  # Diagonal up
                 self.is_short_line_at(brd, x, y, 1, -1))  # Diagonal down
 
+    # Check if a blank space exists before the start of the line that begins at given coordinates in given direction
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] x:  the x coordinate of the starting cell
+    # PARAM [int] y:  the y coordinate of the starting cell
+    # PARAM [int] dx: the x direction
+    # PARAM [int] dy: the y direction
+    # RETURN [Bool]: True if space exists, False otherwise
     def check_space_before(self, brd, x, y, dx, dy):
         # Horizontal:
         if dx == 1 and dy == 0:
@@ -224,6 +254,14 @@ class AlphaBetaAgent(agent.Agent):
         # in case anything REALLY wacky happens
         return False
 
+    # Check if a blank space exists after the end of the line that begins at given coordinates in given direction
+    #
+    # PARAM [board] brd: the current board state
+    # PARAM [int] x:  the x coordinate of the starting cell
+    # PARAM [int] y:  the y coordinate of the starting cell
+    # PARAM [int] dx: the x direction
+    # PARAM [int] dy: the y direction
+    # RETURN [Bool]: True if space exists, False otherwise
     def check_space_after(self, brd, x, y, dx, dy):
         # Horizontal:
         if dx == 1 and dy == 0:
@@ -252,7 +290,6 @@ class AlphaBetaAgent(agent.Agent):
     # PARAM [int] x: the x coordinate of the starting cell
     # PARAM [int] y: the y coordinate of the starting cell
     # RETURN [Bool]: True if space exists before given coordinates, False otherwise
-
     def is_any_space_before(self, brd, x, y):
         """Return True if a line of identical tokens exists starting at (x,y) in any direction"""
         return (self.check_space_before(brd, x, y, 1, 0) or  # Horizontal

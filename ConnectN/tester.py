@@ -54,18 +54,18 @@ wbrd2 = [
 ]
 
 whynowin = [
-    [2, 1, 2, 1, 0, 1, 1],
-    [1, 2, 1, 1, 0, 0, 1],
-    [2, 2, 2, 0, 0, 0, 1],
-    [2, 1, 2, 0, 0, 0, 0],
-    [2, 2, 1, 0, 0, 0, 0],
-    [1, 2, 0, 0, 0, 0, 0]
+    [1, 2, 2, 1, 1, 0, 1],
+    [2, 0, 2, 1, 1, 0, 0],
+    [1, 0, 1, 1, 0, 0, 0],
+    [2, 0, 0, 2, 0, 0, 0],
+    [2, 0, 0, 0, 0, 0, 0],
+    [2, 0, 0, 0, 0, 0, 0]
 ]
 
 whyno2 = [
-    [2, 0, 0, 1, 1, 0, 1],
-    [2, 0, 0, 0, 0, 0, 0],
-    [2, 0, 0, 0, 0, 0, 0],
+    [2, 1, 1, 1, 2, 0, 0],
+    [2, 1, 2, 2, 1, 0, 0],
+    [0, 1, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0]
@@ -109,22 +109,24 @@ def printBoard(brd):
         print(c[0].board)
         print(agent.calculateScore(c[0]))"""
 
-alpha = aba.AlphaBetaAgent("Jimbo", 1)
+alpha = aba.AlphaBetaAgent("Jimbo", 6)
+
+printBoard(why)
 
 print("Score 1: ")
-print(alpha.calculateScore(why2, 1))
+print(alpha.calculateScore(why, 1))
 
 print("Score 2: ")
-print(alpha.calculateScore(why2, 2))
+print(alpha.calculateScore(why, 2))
 
 
 print("Player1 choice: ")
 why2.player = 1
-print(alpha.go(why2))
+print(alpha.decision(why))
 
 print("Player2 choice: ")
 why2.player = 2
-print(alpha.go(why2))
+print(alpha.decision(why))
 
 
 
