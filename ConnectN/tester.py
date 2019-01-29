@@ -3,6 +3,7 @@ import agent
 import run
 import game
 import alpha_beta_agent as aba
+import random
 
 brd = [
     [0, 1, 2, 2, 0, 3],
@@ -54,23 +55,22 @@ wbrd2 = [
 ]
 
 whynowin = [
-    [1, 2, 2, 1, 1, 0, 1],
-    [2, 0, 2, 1, 1, 0, 0],
-    [1, 0, 1, 1, 0, 0, 0],
-    [2, 0, 0, 2, 0, 0, 0],
-    [2, 0, 0, 0, 0, 0, 0],
-    [2, 0, 0, 0, 0, 0, 0]
-]
-
-whyno2 = [
-    [2, 1, 1, 1, 2, 0, 0],
-    [2, 1, 2, 2, 1, 0, 0],
-    [0, 1, 0, 0, 0, 0, 0],
+    [1, 0, 1, 2, 2, 0, 2],
+    [1, 0, 1, 1, 0, 0, 2],
+    [2, 0, 1, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0]
 ]
 
+whyno2 = [
+    [1, 0, 1, 2, 2, 0, 2],
+    [1, 0, 1, 1, 0, 0, 0],
+    [2, 0, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0]
+]
 
 b1 = board.Board(brd, 6, 6, 4)
 
@@ -109,23 +109,37 @@ def printBoard(brd):
         print(c[0].board)
         print(agent.calculateScore(c[0]))"""
 
-alpha = aba.AlphaBetaAgent("Jimbo", 6)
+alpha = aba.AlphaBetaAgent("Jimbo", 4)
 
 printBoard(why)
 
-print("Score 1: ")
+print("Initial score1: ")
 print(alpha.calculateScore(why, 1))
 
-print("Score 2: ")
+print("Initial score2: ")
 print(alpha.calculateScore(why, 2))
 
+brds = alpha.get_successors(why)
 
-print("Player1 choice: ")
-why2.player = 1
-print(alpha.decision(why))
+# for b in brds:
+#     print("\nNEW BOARD!")
+#     why.player = 2
+#     printBoard(b[0])
+#     print("score1:")
+#     print(alpha.calculateScore(b[0], 1))
+#     print("score2:")
+#     print(alpha.calculateScore(b[0], 2))
+#     print("Decision1:")
+#     print(alpha.decision(why))
+print("Columns: ")
+print(random.choice(why.free_cols()))
 
 print("Player2 choice: ")
 why2.player = 2
+print(alpha.decision(why))
+
+print("Player1 choice: ")
+why2.player = 1
 print(alpha.decision(why))
 
 

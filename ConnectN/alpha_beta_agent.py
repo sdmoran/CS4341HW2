@@ -52,20 +52,20 @@ class AlphaBetaAgent(agent.Agent):
             p = 2
             o = 1
 
+        val = 0
         # ==== This appears to be the final piece. AlphaBeta now consistently wins at depth >= 4! ====
         # Checks if the opponent has won and it is now the AI player's turn, meaning it WAS the opponent's turn
         # previously, and it was allowed to win.
         if brd.get_outcome() == o and brd.player == p:
-            return -20000000
+            val -= 20000000
         # Checks if the player we want to win has won and it is now the opponent's turn, meaning it WAS the AI's turn
         # in the previous turn, allowing it to win immediately.
         elif brd.get_outcome() == p and brd.player == o:
-            return 10000000
+            val += 10000000
 
-
-        val = 0
         for col in range(0, brd.w):
             for row in range(0, brd.h):
+                symbol = brd.board[row][col]
                 if brd.board[row][col] != 0:
                     short_line = self.is_any_short_line_at(brd, col, row)
                     if short_line:  # We don't care if there is no n-1 line
@@ -93,6 +93,7 @@ class AlphaBetaAgent(agent.Agent):
             return (None, self.calculateScore(brd, player))
         (minChild, minUtil) = (None, float('inf'))
         for b in self.get_successors(brd):
+            # Need to flip player in maximize!
             (x, util) = self.maximize(b[0], n - 1, alpha, beta, player)  # here, x is useless, just holds place of tuple
             if util < minUtil:
                 (minChild, minUtil) = (b, util)
@@ -138,19 +139,24 @@ class AlphaBetaAgent(agent.Agent):
         # Iterative deepening
         for i in range(0, self.max_depth + 1):
             (child, state) = self.maximize(brd, i, float('-inf'), float('inf'), brd.player)
-            if state <= -20000000:
-                return child[1]
-            if state >= 10000000:
-                return child[1]
+            # if state <= -2000000:
+            #     return child[1]
+            # if state >= 1000000:
+            #     return child[1]
             if state > bestscore:
                 bestscore = state
                 bestmove = child
             else:
                 bestmove = child
             elapsed_time = time.time() - start_time
-            if elapsed_time > 10:  # This could be as high as 15, technically, but we use 12 just in case
+            if elapsed_time > 10:  # This could be as high as 15, technically, but we use 10 just in case
                 break
-        return bestmove[1]
+        if bestmove[1] is not None:
+            return bestmove[1]
+        # If we DON'T find a best move, select one randomly from the list of legal columns. This is quite a corner case,
+        # essentially should only occur if board is nearly/completely full.
+        else:
+            return random.choice(brd.free_cols())
 
     # Get the successors of the given board.
     #
@@ -203,10 +209,16 @@ class AlphaBetaAgent(agent.Agent):
         # Accounts for lines that are split in the middle, like 1 1 0 1
         split = False
 
+        # Special check for horizontal: we don't care if there is 1 1 0 1 if the column below 0 is empty
+
         for i in range(1, brd.n):
             symbol = brd.board[y + i * dy][x + i * dx]
             if symbol != t:
                 if symbol == 0:
+                    if y >= 1:
+                        if dx == 1 and dy == 0:  # We don't care if this split line is unplayable, checks that
+                            if brd.board[y - 1][x + i] == 0:
+                                return False
                     if split:
                         return False
                     if not split:
@@ -297,10 +309,14 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [Bool]: True if space exists before given coordinates, False otherwise
     def is_any_space_before(self, brd, x, y):
         """Return True if a line of identical tokens exists starting at (x,y) in any direction"""
-        return (self.check_space_before(brd, x, y, 1, 0) or  # Horizontal
-                self.check_space_before(brd, x, y, 0, 1) or  # Vertical
-                self.check_space_before(brd, x, y, 1, 1) or  # Diagonal up
-                self.check_space_before(brd, x, y, 1, -1))  # Diagonal down
+        return ((self.is_short_line_at(brd, x, y, 1, 0) and
+                self.check_space_before(brd, x, y, 1, 0)) or  # Horizontal
+                (self.is_short_line_at(brd, x, y, 0, 1) and
+                self.check_space_before(brd, x, y, 0, 1)) or  # Vertical
+                (self.is_short_line_at(brd, x, y, 1, 1) and
+                self.check_space_before(brd, x, y, 1, 1)) or
+                (self.is_short_line_at(brd, x, y, 1, -1) and# Diagonal up
+                self.check_space_before(brd, x, y, 1, -1)))  # Diagonal down
 
     # Calculate the game outcome.
     #
@@ -313,4 +329,4 @@ class AlphaBetaAgent(agent.Agent):
                     return self.board[y][x]
         return 0
 
-    #THE_AGENT = AlphaBetaAgent("MoranSamuel", 4)
+THE_AGENT = AlphaBetaAgent("MoranSamuel", 2)

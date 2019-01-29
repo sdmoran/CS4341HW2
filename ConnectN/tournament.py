@@ -2,6 +2,9 @@ import random
 import game
 import agent
 import alpha_beta_agent as aba
+import time
+
+won = 0
 
 ######################
 # Play a single game #
@@ -78,6 +81,7 @@ def play_match(w, h, n, l, p1, p2):
 # PARAM [int]                 l:  the time limit for a move in seconds
 # PARAM [list of agent.Agent] ps: the agents in the tournament
 def play_tournament(w, h, n, l, ps):
+    global won
     print("TOURNAMENT START")
     # Initialize scores
     scores = {}
@@ -94,6 +98,8 @@ def play_tournament(w, h, n, l, ps):
     sscores = sorted( ((v,k.name) for k,v in scores.items()), reverse=True)
     print("\nSCORES:")
     for v,k in sscores:
+        if k == "aba":
+            won += v
         print(v,k)
 
 #######################
@@ -112,9 +118,14 @@ agents = [
     agent.RandomAgent("random4")
 ]
 
+start = time.time()
 # Run!
-play_tournament(19,      # board width
-                18,      # board height
-                9,      # tokens in a row to win
-                15,     # time limit in seconds
-                agents) # player list
+for i in range(0, 100):
+    random.seed(i)
+    play_tournament(7,      # board width
+                    6,      # board height
+                    4,      # tokens in a row to win
+                    15,     # time limit in seconds
+                    agents) # player list
+print("Won: " + str(won))
+print("Elapsed time: " + str(time.time() - start))
